@@ -27,6 +27,7 @@ public class UserDetailService implements UserDetailsService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
     public UserDetails loadUserByUsername(final String email) throws UsernameNotFoundException {
         final User user = userRepository.findByEmail(email);
 

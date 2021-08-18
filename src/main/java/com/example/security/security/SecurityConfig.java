@@ -9,8 +9,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.core.userdetails.UserDetailsService;
+
+import javax.sql.DataSource;
 
 
 @EnableWebSecurity
@@ -20,12 +24,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    DataSource dataSource;
+
 
     public SecurityConfig() {
         super();
     }
-
-    //
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -50,6 +55,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                     .logout().permitAll()
                 //.logoutRequestMatcher(new AntPathRequestMatcher("/doLogout","GET"))// USE POST INSTEAD OF GET FOR PRODUCTION
+                .and()
+/*                .rememberMe()
+                    .tokenValiditySeconds(3000)
+                    .key("secret_something_to_validate_our_cookies")
+                   // .useSecureCookie(true)  // this means it uses a cookie for https connections only
+                    .rememberMeCookieName("choco-cookie")
+                    .rememberMeParameter("hehe")*/
+
+
+                .rememberMe()
+                    .tokenRepository(persistentTokenRepository() )
+
 
                 .and()
                 .csrf().disable()
@@ -58,8 +75,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
 
+
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        final JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+        jdbcTokenRepository.setDataSource(dataSource);
+        return jdbcTokenRepository;
     }
 }
