@@ -7,13 +7,11 @@ import com.example.security.repository.TokenRepository;
 import com.example.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -27,7 +25,9 @@ public class RegistrationController {
 
     @RequestMapping(value = "/signup")
     public ModelAndView registerationForm(){
+
         return  new ModelAndView("registrationPage","user",new User());
+
     }
 
     @Autowired
@@ -35,11 +35,15 @@ public class RegistrationController {
     @Autowired
     TokenRepository tokenRepo;
 
+    @Autowired
+    PasswordEncoder encoder;
+
 
     @RequestMapping("user/register")
     public String registerUser(final User user , final BindingResult bindingResult , final HttpServletRequest request){
 
         user.setEnabled(false);
+        user.setPassword(encoder.encode("pass"));
         repository.save(user);
 
         final String token = UUID.randomUUID().toString();
@@ -78,5 +82,11 @@ public class RegistrationController {
             //send email (token,user);
         }
 
+    }
+
+
+    @GetMapping("/user/profile")
+    public String idk (){
+        return "profile";
     }
 }

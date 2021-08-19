@@ -1,5 +1,7 @@
 package com.example.security.security;
 
+import com.example.security.entity.User;
+import com.example.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,7 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 
@@ -27,6 +30,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     DataSource dataSource;
 
+    @Autowired
+    UserRepository userRepository;
 
     public SecurityConfig() {
         super();
@@ -34,17 +39,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService);
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
+
 
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         http
+
                 .authorizeRequests()
                      .antMatchers("/signup","/user/register").permitAll()
                      .antMatchers("/delete/**").hasAnyAuthority("ADMIN","ADMIN2")
+                     .antMatchers("/secured").access("hasRole('USER')")
                      .anyRequest().authenticated()
 
                 .and()
@@ -53,19 +61,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .loginProcessingUrl("/doLogin")
 
                     .and()
-                    .logout().permitAll()
+                    .logout().permitAll().logoutUrl("/logout ")
                 //.logoutRequestMatcher(new AntPathRequestMatcher("/doLogout","GET"))// USE POST INSTEAD OF GET FOR PRODUCTION
                 .and()
-/*                .rememberMe()
+                .rememberMe()
                     .tokenValiditySeconds(3000)
                     .key("secret_something_to_validate_our_cookies")
                    // .useSecureCookie(true)  // this means it uses a cookie for https connections only
                     .rememberMeCookieName("choco-cookie")
-                    .rememberMeParameter("hehe")*/
+                    .rememberMeParameter("hehe")
 
-
+/*
                 .rememberMe()
-                    .tokenRepository(persistentTokenRepository() )
+                    .tokenRepository(persistentTokenRepository() )*/
 
 
                 .and()
@@ -82,10 +90,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+ /*   @Bean
     public PersistentTokenRepository persistentTokenRepository() {
         final JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
         jdbcTokenRepository.setDataSource(dataSource);
         return jdbcTokenRepository;
-    }
+    }*/
 }

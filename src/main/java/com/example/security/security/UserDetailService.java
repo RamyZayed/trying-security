@@ -25,20 +25,25 @@ public class UserDetailService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
+
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     public UserDetails loadUserByUsername(final String email) throws UsernameNotFoundException {
         final User user = userRepository.findByEmail(email);
 
+
+
         if (user == null) {
             throw new UsernameNotFoundException("No user found with username: " + email);
         }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), passwordEncoder.encode(user.getPassword()), true, true, true, true, getAuthorities(ROLE_USER));
+        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), true, true, true, true, getAuthorities(ROLE_USER));
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(String role) {
+
         return Arrays.asList(new SimpleGrantedAuthority(role));
+
     }
 
 }
